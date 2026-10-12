@@ -1,0 +1,22 @@
+{
+  "name": "imk-aplikasi-pembelajaran-rpl",
+  "version": "1.0.0",
+  "description": "Aplikasi Pembelajaran Rekayasa Perangkat Lunak (IMK)",
+  "scripts": {
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "npm run dev --prefix backend",
+    "build:frontend": "npm run build --prefix frontend",
+    "install:frontend": "npm install --prefix frontend",
+    "install:backend": "npm install --prefix backend",
+    "install:all": "npm run install:frontend && npm run install:backend"
+  },
+  "keywords": [
+    "imk",
+    "react",
+    "vite",
+    "express",
+    "supabase"
+  ],
+  "author": "",
+  "license": "ISC"
+}
