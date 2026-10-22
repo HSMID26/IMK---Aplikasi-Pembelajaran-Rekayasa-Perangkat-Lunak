@@ -1,21 +1,26 @@
 {
-  "name": "imk-aplikasi-pembelajaran-rpl",
+  "name": "rplearn",
   "version": "1.0.0",
-  "description": "Aplikasi Pembelajaran Rekayasa Perangkat Lunak (IMK)",
+  "description": "RPLearn - Aplikasi Pembelajaran Rekayasa Perangkat Lunak",
   "scripts": {
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:backend": "npm run dev --prefix backend",
     "build:frontend": "npm run build --prefix frontend",
     "install:frontend": "npm install --prefix frontend",
     "install:backend": "npm install --prefix backend",
-    "install:all": "npm run install:frontend && npm run install:backend"
+    "install:all": "npm run install:frontend && npm run install:backend",
+    "test:backend": "npm run test --prefix backend",
+    "db:migrate": "npm run db:migrate --prefix backend",
+    "db:seed": "npm run db:seed --prefix backend"
   },
   "keywords": [
-    "imk",
+    "rplearn",
+    "rekayasa-perangkat-lunak",
     "react",
     "vite",
     "express",
-    "supabase"
+    "postgresql",
+    "laragon"
   ],
   "author": "",
   "license": "ISC"

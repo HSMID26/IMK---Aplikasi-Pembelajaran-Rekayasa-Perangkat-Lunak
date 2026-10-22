@@ -1,0 +1,28 @@
+# ========================================================
+# RPLearn Backend .gitignore
+# ========================================================
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+*.env
+
+# Certificates & Keys
+*.pem
+*.key
+*.cert
+credentials.json
+
+# Dependencies
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Database Local Dumps
+*.dump
+*.sql.gz
+*.sqlite

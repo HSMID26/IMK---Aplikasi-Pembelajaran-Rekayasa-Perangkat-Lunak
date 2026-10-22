@@ -1,68 +1,64 @@
 import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import supabase from './config/supabaseClient.js';
+import { env, validateEnv } from './src/config/env.js';
+import { pool } from './src/config/db.js';
+import { corsMiddleware } from './src/middleware/cors.js';
+import { notFoundHandler, errorHandler } from './src/middleware/errorHandler.js';
+import apiRoutes from './src/routes/index.js';
 
-dotenv.config();
+// Validasi konfigurasi environment saat startup
+validateEnv();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());
+// Global Middleware
+app.use(corsMiddleware);
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// Root welcome check
 app.get('/', (req, res) => {
   res.json({
     status: 'success',
-    message: 'Backend API IMK - Aplikasi Pembelajaran RPL berjalan aktif'
+    service: 'RPLearn Backend Service',
+    description: 'Aplikasi Pembelajaran Rekayasa Perangkat Lunak',
+    documentation: '/api',
   });
 });
 
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString()
+// Seluruh REST API terpusat di /api
+app.use('/api', apiRoutes);
+
+// Error & 404 Handlers
+app.use(notFoundHandler);
+app.use(errorHandler);
+
+// Jalankan Express Server
+const server = app.listen(env.PORT, () => {
+  console.log(`[RPLearn Server] Berjalan pada port ${env.PORT} (http://localhost:${env.PORT})`);
+  console.log(`[RPLearn Server] REST API Root: http://localhost:${env.PORT}/api`);
+  console.log(`[RPLearn Server] Health check: http://localhost:${env.PORT}/api/health`);
+  console.log(`[RPLearn Server] Database: ${env.DB_NAME}@${env.DB_HOST}:${env.DB_PORT}`);
+});
+
+// Keepalive timer untuk stabilitas event loop process
+const keepAliveTimer = setInterval(() => {}, 1000 * 60 * 60);
+
+// Graceful Shutdown
+function handleShutdown(signal) {
+  console.log(`\n[RPLearn Server] Menerima sinyal ${signal}. Menutup server dan koneksi pool database...`);
+  clearInterval(keepAliveTimer);
+  server.close(async () => {
+    try {
+      await pool.end();
+      console.log('[RPLearn Server] Koneksi database berhasil ditutup dengan aman.');
+    } catch (err) {
+      console.error('[RPLearn Server Error] Gagal menutup koneksi database:', err.message);
+    }
+    process.exit(0);
   });
-});
+}
 
-// Endpoint uji coba koneksi Supabase
-app.get('/api/supabase-test', async (req, res) => {
-  try {
-    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
-      return res.status(500).json({
-        status: 'error',
-        message: 'Variabel SUPABASE_URL atau SUPABASE_ANON_KEY belum diisi di file .env'
-      });
-    }
+process.on('SIGINT', () => handleShutdown('SIGINT'));
+process.on('SIGTERM', () => handleShutdown('SIGTERM'));
 
-    // Melakukan query ringan untuk verifikasi koneksi Supabase
-    const { data, error } = await supabase.from('users').select('*').limit(1);
-
-    if (error && error.code !== 'PGRST116') {
-      return res.status(200).json({
-        status: 'connected_with_notice',
-        message: 'Koneksi ke Supabase berhasil, namun tabel "users" belum dibuat atau izin akses dibatasi.',
-        supabaseError: error.message
-      });
-    }
-
-    return res.status(200).json({
-      status: 'connected',
-      message: 'Berhasil terhubung ke Supabase!',
-      data
-    });
-  } catch (err) {
-    return res.status(500).json({
-      status: 'error',
-      message: 'Gagal terhubung ke Supabase',
-      error: err.message
-    });
-  }
-});
-
-app.listen(PORT, () => {
-  console.log(`Server Express berjalan pada port ${PORT} (http://localhost:${PORT})`);
-});
+export default app;
